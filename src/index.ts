@@ -40,9 +40,31 @@ interface HashTable<T> {
     [key: string]: T
 }
 
+enum Type {
+    FOREX = 'Forex',
+    CRYPTO = 'Crypto',
+    STOCK = 'STOCK'
+}
+
 interface Instrument {
     _id: ObjectId | undefined,
     symbol: string,
+    type: Type,
+    exchange: string,
+    marketSymbol: string,
+    pricePrecision: number,
+    quantityPrecision: number,
+    minimumNotional: number | null,
+    maximumNotional: number | null,
+    minimumQuantity: number | null,
+    maximumQuantity: number | null
+    exchangeId: ObjectId | undefined
+}
+
+interface Market {
+    _id: ObjectId | undefined,
+    symbol: string,
+    type: Type,
     exchange: string,
     marketSymbol: string,
     epoch: number,
@@ -75,6 +97,7 @@ interface Candlestick {
     low: number,
     close: number,
     volume: number,
+    exchange: string,
     timeframeId: ObjectId | undefined,
     instrumentId: ObjectId | undefined,
     exchangeId: ObjectId | undefined
@@ -94,6 +117,7 @@ interface Ticker {
 }
 
 const Instruments: HashTable<Instrument> = {};
+const Markets: HashTable<Market> = {};
 const Timeframes: HashTable<Timeframe> = {};
 
 const timeframes: string[] = timeframeList.split(',');
@@ -108,13 +132,29 @@ instrumentList.map(instrument => {
         _id: new ObjectId(),
         exchange: exchangeName,
         symbol,
+        type: Type.CRYPTO,
+        marketSymbol: instrument,
+        exchangeId: undefined,
+        pricePrecision: 0.00001,
+        quantityPrecision: 1,
+        minimumNotional: null,
+        maximumNotional: null,
+        minimumQuantity: 10000,
+        maximumQuantity: null
+    }
+    Markets[symbol] = {
+        _id: new ObjectId(),
+        exchange: exchangeName,
+        symbol,
+        type: Type.CRYPTO,
         marketSymbol: instrument,
         exchangeId: undefined,
         epoch: new Date().getTime(),
         timestamp: new Date(),
         bid: 0,
-        ask: 0,
+        ask: 0
     }
+
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < timeframes.length; i++) {
         Timeframes[symbol + '-' + timeframeNames[i]] = {
@@ -244,6 +284,32 @@ const UpdateInstruments = () => {
             logger.error(err);
         }
     });
+    Object.keys(Markets).forEach(async key => {
+        Markets[key].exchangeId = exchangeId;
+        const object = Markets[key];
+        const collection = db.collection('market');
+        try {
+            await collection.updateOne({
+                exchange: exchangeName,
+                symbol: object.symbol,
+                marketSymbol: object.marketSymbol,
+                exchangeId
+            }, {
+                $setOnInsert: object
+            }, {
+                upsert: true
+            });
+            const market = await collection.findOne({
+                symbol: object.symbol,
+                exchangeId
+            });
+            if (market !== null) {
+                Markets[key]._id = market._id;
+            }
+        } catch (err) {
+            logger.error(err);
+        }
+    });
     Object.keys(Timeframes).forEach(async key => {
         Timeframes[key].exchangeId = exchangeId;
         const object = Timeframes[key];
@@ -288,6 +354,7 @@ const UpdateInstruments = () => {
                     low: dbCandle !== null ? dbCandle.low : Number.MAX_VALUE,
                     close: 0,
                     volume: 0,
+                    exchange: exchangeName,
                     timeframeId: timeframe._id,
                     instrumentId: Instruments[Timeframes[key].symbol]._id,
                     exchangeId
@@ -313,7 +380,7 @@ const ProcessTicker = (ticker: Ticker) => {
            instrumentId: ticker.instrumentId,
            exchangeId
         });
-        db.collection('instrument').updateOne({
+        db.collection('market').updateOne({
             symbol: ticker.symbol,
             exchangeId
         }, {

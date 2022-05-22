@@ -30,6 +30,7 @@
   "typings": "./lib/index.d.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
+    "build": "tsc",
     "lint": "tslint -c tslint.json src/**/*.ts"
   },
   "devDependencies": {

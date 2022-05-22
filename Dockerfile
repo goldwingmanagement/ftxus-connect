@@ -8,4 +8,6 @@ RUN npm install
 
 COPY . .
 
-ENTRYPOINT ["npm", "start"]
+RUN npm run build
+
+ENTRYPOINT ["node", "./lib/index.js"]
