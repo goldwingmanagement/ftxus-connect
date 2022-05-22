@@ -371,7 +371,7 @@ const ProcessTicker = (ticker: Ticker) => {
         if (enableLog === true) logger.info(JSON.stringify(ticker));
         const tick = db.collection('tick');
         if (ticker.instrumentId === undefined) return;
-        tick.insertOne({
+        tick.insertOneAsync({
            symbol: ticker.symbol,
            bid: ticker.bid,
            ask: ticker.ask,
@@ -380,7 +380,7 @@ const ProcessTicker = (ticker: Ticker) => {
            instrumentId: ticker.instrumentId,
            exchangeId
         });
-        db.collection('market').updateOne({
+        db.collection('market').updateOneAsync({
             symbol: ticker.symbol,
             exchange: exchangeName
         }, {
@@ -404,7 +404,7 @@ const ProcessTicker = (ticker: Ticker) => {
                     timeframe.candlestick.high = Math.max(timeframe.candlestick.high, ticker.bid);
                     timeframe.candlestick.low = Math.min(timeframe.candlestick.low, ticker.bid);
                     timeframe.candlestick.volume += ticker.bidVolume;
-                    db.collection('candlestick').updateOne({
+                    db.collection('candlestick').updateOneAsync({
                         timestamp: timeframe.candlestick.timestamp,
                         symbol: timeframe.candlestick.symbol,
                         timeframe: timeframe.candlestick.timeframe,
@@ -432,7 +432,7 @@ const ProcessTicker = (ticker: Ticker) => {
                     timeframe.candlestick.high = ticker.bid;
                     timeframe.candlestick.low = ticker.bid;
                     timeframe.candlestick.volume = ticker.bidVolume;
-                    db.collection('candlestick').insertOne(timeframe.candlestick, (err) => {
+                    db.collection('candlestick').insertOneAsync(timeframe.candlestick, (err) => {
                         if (err) {
                             logger.error(err);
                         }
