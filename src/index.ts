@@ -447,6 +447,7 @@ const ProcessTicker = (ticker: Ticker) => {
 setInterval(() => {
     // We have to throttle updates due to speed
     let marketUpdates: any = [];
+    if (db === undefined || db === null) return;
     Object.keys(Markets).forEach(key => {
         const market = Markets[key];
         marketUpdates.push({
