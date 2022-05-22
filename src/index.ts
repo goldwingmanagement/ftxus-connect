@@ -435,6 +435,21 @@ const ProcessTicker = (ticker: Ticker) => {
                             logger.error(err);
                         }
                     });
+                    db.collection('timeframe').updateOne({
+                        symbol: timeframe.symbol,
+                        timeframe: timeframe.timeframe,
+                        minutes: timeframe.minutes
+                    }, {
+                        $set: {
+                            candlestick: timeframe.candlestick
+                        }
+                    }, {
+                        writeConcern: {
+                            w: 0,
+                            j: false,
+                            wtimeout: 500
+                        }
+                    });
                 }
                 if (enableLog === true) logger.info(JSON.stringify(timeframe.candlestick));
             }
@@ -471,6 +486,7 @@ setInterval(() => {
         logger.error(err);
     });
     let candlestickUpdates: any = [];
+    let timeframeUpdates: any = [];
     Object.keys(Timeframes).forEach(key => {
         const timeframe = Timeframes[key];
         const candlestick = timeframe.candlestick;
@@ -493,8 +509,25 @@ setInterval(() => {
                 }
             }
         });
+        timeframeUpdates.push({
+            updateOne: {
+                filter: {
+                    exchange: exchangeName,
+                    timeframe: candlestick.timeframe,
+                    symbol: candlestick.symbol
+                },
+                update: {
+                    $set: {
+                        candlestick: candlestick
+                    }
+                }
+            }
+        });
     });
     db.collection('candlestick').bulkWrite(candlestickUpdates, err => {
+        logger.error(err);
+    });
+    db.collection('timeframe').bulkWrite(timeframeUpdates, err => {
         logger.error(err);
     });
 }, 100)
