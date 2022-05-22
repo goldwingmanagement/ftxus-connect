@@ -382,7 +382,7 @@ const ProcessTicker = (ticker: Ticker) => {
         });
         db.collection('market').updateOne({
             symbol: ticker.symbol,
-            exchangeId
+            exchange: exchangeName
         }, {
             $set: {
                 bid: ticker.bid,
