@@ -483,7 +483,13 @@ setInterval(() => {
         });
     });
     if (marketUpdates.length > 0) {
-        db.collection('market').bulkWrite(marketUpdates, err => {
+        db.collection('market').bulkWrite(marketUpdates, {
+            writeConcern: {
+                w: 0,
+                j: false,
+                wtimeout: 500
+            }
+        }, err => {
             logger.error(err);
         });
     }
@@ -527,16 +533,28 @@ setInterval(() => {
         });
     });
     if (candlestickUpdates.length > 0) {
-        db.collection('candlestick').bulkWrite(candlestickUpdates, err => {
+        db.collection('candlestick').bulkWrite(candlestickUpdates, {
+            writeConcern: {
+                w: 0,
+                j: false,
+                wtimeout: 500
+            }
+        }, err => {
             logger.error(err);
         });
     }
     if (timeframeUpdates.length > 0) {
-        db.collection('timeframe').bulkWrite(timeframeUpdates, err => {
+        db.collection('timeframe').bulkWrite(timeframeUpdates, {
+            writeConcern: {
+                w: 0,
+                j: false,
+                wtimeout: 500
+            }
+        }, err => {
             logger.error(err);
         });
     }
-}, 100)
+}, 100);
 
 const GetInitialTime = (timeframe: Timeframe) => {
     let lastMinute = new Date().setSeconds(0, 0);
