@@ -165,8 +165,8 @@ instrumentList.map(instrument => {
     }
 });
 
-const ftxus = new FtxUsClient();
-ftxus.on('ticker', (Ticker: any, Market: any) => {
+const client = new FtxUsClient();
+client.on('ticker', (Ticker: any, Market: any) => {
     try {
         if (streaming === false) {
             streaming = true;
@@ -210,7 +210,7 @@ const subscribeTickers = () => {
       base: pair[0],
       quote: pair[1]
     };
-    ftxus.subscribeTicker(subscription);
+    client.subscribeTicker(subscription);
   });
 }
 
@@ -482,9 +482,11 @@ setInterval(() => {
             }
         });
     });
-    db.collection('market').bulkWrite(marketUpdates, err => {
-        logger.error(err);
-    });
+    if (marketUpdates.length > 0) {
+        db.collection('market').bulkWrite(marketUpdates, err => {
+            logger.error(err);
+        });
+    }
     let candlestickUpdates: any = [];
     let timeframeUpdates: any = [];
     Object.keys(Timeframes).forEach(key => {
@@ -524,12 +526,16 @@ setInterval(() => {
             }
         });
     });
-    db.collection('candlestick').bulkWrite(candlestickUpdates, err => {
-        logger.error(err);
-    });
-    db.collection('timeframe').bulkWrite(timeframeUpdates, err => {
-        logger.error(err);
-    });
+    if (candlestickUpdates.length > 0) {
+        db.collection('candlestick').bulkWrite(candlestickUpdates, err => {
+            logger.error(err);
+        });
+    }
+    if (timeframeUpdates.length > 0) {
+        db.collection('timeframe').bulkWrite(timeframeUpdates, err => {
+            logger.error(err);
+        });
+    }
 }, 100)
 
 const GetInitialTime = (timeframe: Timeframe) => {
