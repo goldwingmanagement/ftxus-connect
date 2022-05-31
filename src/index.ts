@@ -279,7 +279,9 @@ const UpdateInstruments = () => {
                 Instruments[key]._id = instrument._id;
             }
         } catch (err) {
-            logger.error(err);
+            if (err) {
+                logger.error(err);
+            }
         }
     });
     Object.keys(Markets).forEach(async key => {
@@ -305,7 +307,9 @@ const UpdateInstruments = () => {
                 Markets[key]._id = market._id;
             }
         } catch (err) {
-            logger.error(err);
+            if (err) {
+                logger.error(err);
+            }
         }
     });
     Object.keys(Timeframes).forEach(async key => {
@@ -359,7 +363,9 @@ const UpdateInstruments = () => {
                 }
             }
         } catch (err) {
-            logger.error(err);
+            if (err) {
+                logger.error(err);
+            }
         }
     });
 }
@@ -490,7 +496,9 @@ setInterval(() => {
                 wtimeout: 500
             }
         }, err => {
-            logger.error(err);
+            if (err) {
+                logger.error(err);
+            }
         });
     }
     let candlestickUpdates: any = [];
@@ -540,7 +548,9 @@ setInterval(() => {
                 wtimeout: 500
             }
         }, err => {
-            logger.error(err);
+            if (err) {
+                logger.error(err);
+            }
         });
     }
     if (timeframeUpdates.length > 0) {
@@ -551,7 +561,9 @@ setInterval(() => {
                 wtimeout: 500
             }
         }, err => {
-            logger.error(err);
+            if (err) {
+                logger.error(err);
+            }
         });
     }
 }, 100);
